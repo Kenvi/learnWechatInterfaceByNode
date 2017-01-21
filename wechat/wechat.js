@@ -52,6 +52,11 @@ var api = {
 	// 2016-10-31 5-3 第五天 微信菜单-增加菜单配制项
 	menu:{
 		
+	},
+
+	// 2017-01-21
+	ticket:{
+		get:prefix + 'ticket/getticket?'
 	}
 }
 
@@ -61,19 +66,15 @@ var Wechat = function(opts){
 	this.appSecret = opts.appSecret;
 	this.getAccessToken = opts.getAccessToken;
 	this.saveAccessToken = opts.saveAccessToken;
+	this.getTicket = opts.getTicket;
+	this.saveTicket = opts.saveTicket;
 	this.fetchAccessToken()	;	
 };
 
 Wechat.prototype.fetchAccessToken = function(data){
 	var that = this;
 
-	if(this.access_token && this.expires_in){
-		if(this.isVaildAccessToken(this)){
-			return Promise.resolve(this);
-		}
-	}
-
-	this.getAccessToken()
+	return this.getAccessToken()
 		.then(function(data){
 			try{
 				data = JSON.parse(data);
@@ -89,14 +90,40 @@ Wechat.prototype.fetchAccessToken = function(data){
 			}
 		})
 		.then(function(data){
-			that.access_token = data.access_token;
-			that.expires_in = data.expires_in;
 
 			that.saveAccessToken(data);
 
 			return Promise.resolve(data);
 		})
 };
+
+Wechat.prototype.fetchTicket = function(access_token){
+	var that = this;
+
+
+	return this.getTicket()
+		.then(function(data){
+			try{
+				data = JSON.parse(data);
+			}
+			catch(e){
+				return that.updateTicket(access_token);
+			}
+
+			if(that.isVaildTicket(data)){
+				return Promise.resolve(data);
+			}else{
+				return that.updateTicket(access_token);				
+			}
+		})
+		.then(function(data){
+
+			that.saveTicket(data);
+
+			return Promise.resolve(data);
+		})
+};
+
 
 Wechat.prototype.isVaildAccessToken = function(data){
 	if(!data || !data.access_token || !data.expires_in){
@@ -114,10 +141,43 @@ Wechat.prototype.isVaildAccessToken = function(data){
 	}
 };
 
+Wechat.prototype.isVaildTicket = function(data){
+	if(!data || !data.ticket || !data.expires_in){
+		return false;
+	}
+
+	var ticket = data.ticket;
+	var expires_in = data.expires_in;
+
+	var now = (new Date().getTime());
+	if(ticket && now < expires_in){
+		return true;
+	}else{
+		return false;
+	}
+};
+
 Wechat.prototype.updateAccessToken = function(){
 	var appID = this.appID;
 	var appSecret = this.appSecret;
 	var url = api.accessToken + '&appid=' + appID + '&secret=' + appSecret;
+
+	return new Promise(function(resolve,reject){
+		request({url:url, json:true}).then(function(res){
+			var data = res.body;
+			var now = (new Date().getTime());
+			var expires_in = now + (data.expires_in - 20) * 1000;
+
+			data.expires_in = expires_in;
+
+			resolve(data);
+		})
+	})
+	
+};
+
+Wechat.prototype.updateTicket = function(access_token){
+	var url = api.ticket.get + '&access_token=' + access_token + '&type=jsapi' ;
 
 	return new Promise(function(resolve,reject){
 		request({url:url, json:true}).then(function(res){
