@@ -43,7 +43,7 @@ var tpl = heredoc(function(){/*
 	<body>
 		<h1>点击标题开始翻译</h1>	
 		<p id="title"></p>
-		<div id="poster"></p>
+		<div id="poster"></div>
 	</body>
 	</html>	
 	
@@ -64,6 +64,7 @@ var _sign = function(noncestr,ticket,timestamp,url){
 		'timestamp=' + timestamp,
 		'url=' + url
 	]
+	console.log(parms)
 	var str = parms.sort().join('&')
 	var shasum = crypto.createHash('sha1')
 	shasum.update(str)
@@ -90,11 +91,10 @@ app.use(function *(next) {
 		var data = yield wechatApi.fetchAccessToken()
 		var access_token = data.access_token
 		var dataTicket = yield wechatApi.fetchTicket(access_token)
-		var ticket = data.ticket
+		var ticket = dataTicket.ticket
 		var url = this.href
 		var parms = sign(ticket,url)
 
-		console.log(parms)
 
 		this.body = ejs.render(tpl,parms)
 		return next
