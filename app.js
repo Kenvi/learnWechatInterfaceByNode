@@ -19,14 +19,14 @@ var tpl = heredoc(function(){/*
 	<!DOCTYPE html>
 	<html lang="zh-CN">
 	<head>
-		<title>猜电影</title>
+		<title>搜电影</title>
 		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">        
-		<meta name="viewport" content="initial-scale=1,maximum=1,minimum-scale=1">
+		<meta name="viewport" content="initial-scale=1,maximum-scale=1,minimum-scale=1">
 		<script type="text/javascript" src="//cdn.bootcss.com/zepto/1.2.0/zepto.js"></script>
 		<script type="text/javascript" src="http://res.wx.qq.com/open/js/jweixin-1.0.0.js"></script>
 		<script type="text/javascript">
 			wx.config({
-			    debug: true, // 开启调试模式,调用的所有api的返回值会在客户端alert出来，若要查看传入的参数，可以在pc端打开，参数信息会通过log打出，仅在pc端时才会打印。
+			    debug: false, // 开启调试模式,调用的所有api的返回值会在客户端alert出来，若要查看传入的参数，可以在pc端打开，参数信息会通过log打出，仅在pc端时才会打印。
 			    appId: 'wx0df8e5d751cf49ed', // 必填，公众号的唯一标识
 			    timestamp: '<%= timestamp %>', // 必填，生成签名的时间戳
 			    nonceStr: '<%= noncestr %>', // 必填，生成签名的随机串
@@ -37,12 +37,42 @@ var tpl = heredoc(function(){/*
 						'onVoiceRecordEnd',
 						'translateVoice'
 			    ] // 必填，需要使用的JS接口列表，所有JS接口列表见附录2
-			});
+			})
+			wx.ready(function(){
+				var isRecord = false
+				$('h1').on('click',function(){
+					if(!isRecord){
+						isRecord = true
+						wx.startRecord({
+							cancel:function(){
+								alert('can not search !')
+							}
+						})
+						return
+					}else{
+						isRecord = false
+						wx.stopRecord({
+						    success: function (res) {
+					        var localId = res.localId;
+						      wx.translateVoice({
+						          localId: localId, // 需要识别的音频的本地Id，由录音相关接口获得
+						          isShowProgressTips: 1, // 默认为1，显示进度提示
+						          success: function (res) {
+					              alert(res.translateResult); // 语音识别的结果
+						          }
+						      })
+						    }
+						})
+					}
+				})
+			})
 		</script>
 	</head>
 	<body>
 		<h1>点击标题开始翻译</h1>	
 		<p id="title"></p>
+		<div id="director"></div>
+		<div id="year"></div>
 		<div id="poster"></div>
 	</body>
 	</html>	
