@@ -36,11 +36,13 @@ var tpl = heredoc(function(){/*
 						'stopRecord',
 						'onVoiceRecordEnd',
 						'translateVoice',
-						'onMenuShareAppMessage'
+						'onMenuShareAppMessage',
+						'previewImage'
 			    ] // 必填，需要使用的JS接口列表，所有JS接口列表见附录2
 			})
 			wx.ready(function(){
 				var isRecord = false
+				var imgs = {}
 				var shareContent = {
 			    title: 'heiheihei', // 分享标题
 			    desc: '我搜出来了 ' , // 分享描述
@@ -56,6 +58,10 @@ var tpl = heredoc(function(){/*
 			    }
 				}
 				wx.onMenuShareAppMessage(shareContent);
+
+				$('#poster').on('click',function(){
+					wx.previewImage(imgs)
+				})
 				
 				$('h1').on('click',function(){
 					if(!isRecord){
@@ -88,6 +94,14 @@ var tpl = heredoc(function(){/*
 														$('#director').html(subject.directors[0].name)
 														$('#year').html(subject.year)
 														$('#poster').html('<img src="' + subject.images.large + '" />')
+
+														imgs = {
+															current:subject.images.large,
+															urls:[subject.images.large]
+														}
+														data.subjects.forEach(function(item){
+															imgs.urls.push(item.images.large)
+														})
 
 														shareContent = {
 													    title: subject.title || '', // 分享标题
