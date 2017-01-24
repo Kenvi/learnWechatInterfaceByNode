@@ -35,11 +35,28 @@ var tpl = heredoc(function(){/*
 						'startRecord',
 						'stopRecord',
 						'onVoiceRecordEnd',
-						'translateVoice'
+						'translateVoice',
+						'onMenuShareAppMessage'
 			    ] // 必填，需要使用的JS接口列表，所有JS接口列表见附录2
 			})
 			wx.ready(function(){
 				var isRecord = false
+				var shareContent = {
+			    title: 'heiheihei', // 分享标题
+			    desc: '我搜出来了 ' , // 分享描述
+			    link: 'https://github.com', // 分享链接
+			    imgUrl: 'subject.images.large', // 分享图标
+			    type: 'link', // 分享类型,music、video或link，不填默认为link
+			    dataUrl: '', // 如果type是music或video，则要提供数据链接，默认为空
+			    success: function () { 
+			        alert('success')
+			    },
+			    cancel: function () { 
+			        alert('fail')
+			    }
+				}
+				wx.onMenuShareAppMessage(shareContent);
+				
 				$('h1').on('click',function(){
 					if(!isRecord){
 						isRecord = true
@@ -71,6 +88,23 @@ var tpl = heredoc(function(){/*
 														$('#director').html(subject.directors[0].name)
 														$('#year').html(subject.year)
 														$('#poster').html('<img src="' + subject.images.large + '" />')
+
+														shareContent = {
+													    title: subject.title || '', // 分享标题
+													    desc: '我搜出来了 ' + subject.title, // 分享描述
+													    link: 'https://github.com', // 分享链接
+													    imgUrl: subject.images.large, // 分享图标
+													    type: 'link', // 分享类型,music、video或link，不填默认为link
+													    dataUrl: '', // 如果type是music或video，则要提供数据链接，默认为空
+													    success: function () { 
+													        alert('success')
+													    },
+													    cancel: function () { 
+													        alert('fail')
+													    }
+														}
+
+														wx.onMenuShareAppMessage(shareContent);
 													}
 					              })
 						          }
@@ -79,6 +113,7 @@ var tpl = heredoc(function(){/*
 						})
 					}
 				})
+				
 			})
 		</script>
 	</head>
